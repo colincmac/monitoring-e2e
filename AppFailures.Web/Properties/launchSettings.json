@@ -1,0 +1,46 @@
+{
+  "profiles": {
+    "AppFailures.Web": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        //"ASPNETCORE_HOSTINGSTARTUP__KEYVAULT__CONFIGURATIONENABLED": "true",
+        //"ASPNETCORE_HOSTINGSTARTUP__KEYVAULT__CONFIGURATIONVAULT": "https://shared-config-eastus.vault.azure.net/",
+        "VaultUri": "https://shared-config-eastus.vault.azure.net/",
+        "AZURE_USERNAME": "admin@MngEnvMCAP607321.onmicrosoft.com"
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "https://localhost:7143;http://localhost:5010"
+    },
+    "IIS Express": {
+      "commandName": "IISExpress",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "VaultUri": "https://shared-config-eastus.vault.azure.net/",
+        "AZURE_USERNAME": "admin@MngEnvMCAP607321.onmicrosoft.com"
+      }
+    },
+    "Docker": {
+      "commandName": "Docker",
+      "launchBrowser": true,
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
+      "environmentVariables": {
+        "ASPNETCORE_URLS": "https://+:443;http://+:80",
+        "VaultUri": "https://shared-config-eastus.vault.azure.net/",
+        "AZURE_USERNAME": "admin@MngEnvMCAP607321.onmicrosoft.com"
+      },
+      "publishAllPorts": true,
+      "useSSL": true
+    }
+  },
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://localhost:38239",
+      "sslPort": 44318
+    }
+  }
+}
