@@ -27,6 +27,13 @@ var redisConfiguration = builder.Configuration.GetSection(RedisConfiguration.Sec
 
 if (redisConfiguration is not null && !string.IsNullOrEmpty(redisConfiguration.ConnectionString))
 {
+    //builder.Services.AddSingleton(sp =>
+    //{
+    //    var redisConfig = ConfigurationOptions.Parse(redisConfiguration.ConnectionString, true);
+
+    //    return ConnectionMultiplexer.Connect(redisConfig);
+    //});
+
     builder.Services.AddSingleton(async _ => await RedisConnection.InitializeAsync(connectionString: redisConfiguration.ConnectionString));
 
     //builder.Services.AddDistributedRedisCache(option =>

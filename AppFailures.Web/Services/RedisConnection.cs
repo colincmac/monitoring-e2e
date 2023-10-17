@@ -1,8 +1,11 @@
-﻿using StackExchange.Redis;
+﻿using Microsoft.ApplicationInsights;
+using StackExchange.Redis;
+using System.Diagnostics;
 using System.Net.Sockets;
 
 namespace AppFailures.Web.Services;
 
+// Reference: https://github.com/Azure-Samples/azure-cache-redis-samples/tree/main/quickstart/aspnet-core
 public class RedisConnection : IDisposable
 {
     private long _lastReconnectTicks = DateTimeOffset.MinValue.UtcTicks;
@@ -41,6 +44,7 @@ public class RedisConnection : IDisposable
 
     public static async Task<RedisConnection> InitializeAsync(string connectionString)
     {
+
         var redisConnection = new RedisConnection(connectionString);
         await redisConnection.ForceReconnectAsync(initializing: true);
 
@@ -50,21 +54,33 @@ public class RedisConnection : IDisposable
     // In real applications, consider using a framework such as
     // Polly to make it easier to customize the retry approach.
     // For more info, please see: https://github.com/App-vNext/Polly
-    public async Task<T> BasicRetryAsync<T>(Func<IDatabase, Task<T>> func)
+    public async Task<T> BasicRetryAsync<T>(Func<IDatabase, Task<T>> func, TelemetryClient telemetry, string trackingName)
     {
+        var database = GetDatabase();
         var reconnectRetry = 0;
+        var start = new DateTimeOffset(DateTime.UtcNow);
+        var watch = new Stopwatch();
 
+        watch.Start();
         while (true)
         {
             try
             {
-                return await func(GetDatabase());
+                var result = await func(database);
+                watch.Stop();
+
+                telemetry?.TrackDependency("REDIS", database.Multiplexer.ClientName, trackingName, startTime: start, duration: watch.Elapsed, success: true);
+                return result;
             }
             catch (Exception ex) when (ex is RedisConnectionException || ex is SocketException || ex is ObjectDisposedException)
             {
                 reconnectRetry++;
+                telemetry?.TrackDependency("REDIS", database.Multiplexer.ClientName, trackingName, startTime: start, duration: watch.Elapsed, success: false);
+
                 if (reconnectRetry > RetryMaxAttempts)
                 {
+                    watch.Stop();
+
                     throw;
                 }
 
@@ -76,6 +92,7 @@ public class RedisConnection : IDisposable
             }
         }
     }
+
 
     /// <summary>
     /// Force a new ConnectionMultiplexer to be created.
@@ -176,7 +193,9 @@ public class RedisConnection : IDisposable
     public void Dispose()
     {
         try
-        { _connection?.Dispose(); }
+        {
+            _connection?.Dispose();
+        }
         catch { }
     }
 }
